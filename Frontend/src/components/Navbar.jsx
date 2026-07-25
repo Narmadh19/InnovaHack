@@ -14,7 +14,7 @@ function Navbar() {
 
       </div>
 
-      <Link to="/dashboard">
+      <Link to="/dashboard/:workflowId">
     <button className="bg-cyan-500 px-5 py-2 rounded-lg text-white hover:bg-cyan-600">
         Dashboard
     </button>

@@ -3,12 +3,34 @@ import { FaMicrophone } from "react-icons/fa";
 import PromptCards from "../components/PromptCards";
 import AgentSection from "../components/AgentSection";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import api from "../services/api";
+
 function Landing() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [message, setMessage] = useState("");
+
+  const handleGenerate = async () => {
+    try {
+      // If backend is not ready, comment these lines and use navigate("/dashboard/demo")
+      const res = await api.post("/workflow", {
+        message,
+      });
+
+      const workflowId = res.data.workflowId;
+
+      navigate(`/dashboard/${workflowId}`);
+    } catch (err) {
+      console.log(err);
+
+      // Temporary navigation for UI testing
+      navigate("/dashboard/demo");
+    }
+  };
+
   return (
-    
     <div className="min-h-screen bg-slate-950">
-   
+
       <Navbar />
 
       <div className="flex flex-col items-center mt-24">
@@ -24,6 +46,8 @@ function Landing() {
         <div className="mt-12 flex items-center bg-slate-800 rounded-xl border border-slate-700 p-2 w-[700px]">
 
           <input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
             placeholder="Plan a Goa trip under ₹30,000..."
             className="bg-transparent outline-none flex-1 text-white px-4"
           />
@@ -35,14 +59,15 @@ function Landing() {
         </div>
 
         <button
-    onClick={() => navigate("/dashboard")}
-    className="mt-8 bg-cyan-500 px-8 py-3 rounded-xl text-white hover:bg-cyan-600"
->
-    Generate Plan
-</button>
+          onClick={handleGenerate}
+          className="mt-8 bg-cyan-500 px-8 py-3 rounded-xl text-white hover:bg-cyan-600"
+        >
+          Generate Plan
+        </button>
+
         <PromptCards />
 
-<AgentSection />
+        <AgentSection />
 
       </div>
 

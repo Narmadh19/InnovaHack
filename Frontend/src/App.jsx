@@ -8,8 +8,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
+<Route path="/dashboard/:workflowId" element={<Dashboard />} />      </Routes>
     </BrowserRouter>
   );
 }
