@@ -20,7 +20,7 @@ import {
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
-  const { stages, progress, isGenerating, sessionId } = useTravel();
+  const { stages, progress, isGenerating, isPartial, sessionId } = useTravel();
 
   const getStageIcon = (id) => {
     switch (id) {
