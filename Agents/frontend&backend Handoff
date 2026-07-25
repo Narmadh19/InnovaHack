@@ -1,0 +1,703 @@
+BACKEND HANDOFF DOCUMENT
+TravelGenie AI – Backend Integration Guide
+1. Project Overview
+Project Name
+
+TravelGenie AI
+
+Theme
+
+Autonomous Personal Assistant Agent for Multi-Step Real-World Tasks
+
+Objective
+
+The backend acts as the central orchestrator.
+
+It is responsible for:
+
+receiving user requests
+orchestrating all AI agents
+calling external APIs
+maintaining workflow state
+storing execution results
+returning the final travel plan
+
+The frontend NEVER communicates directly with Lyzr.
+
+2. Overall Architecture
+Frontend
+     │
+POST /api/workflow
+     │
+     ▼
+Backend Orchestrator
+     │
+     ├──────── Goal Understanding Agent
+     │
+     ├──────── Planner Agent
+     │
+     ├──────── Flight Search API
+     │            │
+     │            ▼
+     │      Flight Search Agent
+     │
+     ├──────── Hotel Search API
+     │            │
+     │            ▼
+     │      Hotel Search Agent
+     │
+     ├──────── Weather API
+     │            │
+     │            ▼
+     │   Weather Intelligence Agent
+     │
+     ├──────── Budget Optimization Agent
+     │
+     ├──────── Decision Making Agent
+     │
+     ├──────── Itinerary Generation Agent
+     │
+     └──────── Travel Assistant Report Agent
+                    │
+                    ▼
+              Final JSON Response
+3. Lyzr Endpoint
+
+All agents use the same endpoint.
+
+POST
+https://agent-prod.studio.lyzr.ai/v3/inference/chat/
+
+Headers
+
+Authorization: Bearer <LYZR_API_KEY>
+
+Content-Type: application/json
+
+Request
+
+{
+  "user_id":"user123",
+  "agent_id":"<AGENT_ID>",
+  "session_id":"workflow001",
+  "message":{}
+}
+4. Agent Registry
+Agent	Agent ID
+Goal Understanding	6a643f1db2e461326899352e
+Planner	6a645202dca11e54549bafd1
+Flight Search	6a645502c42eb0d1c8a626f0
+Hotel Search	6a64593246bab0311981145e
+Weather Intelligence	6a645fd95b267f5d4d3b3ae5
+Budget Optimization	6a6462a45b267f5d4d3b3af8
+Decision Making	6a6476840632b95a6d35a001
+Itinerary Generation	6a647844ea8fb353b64f5cd1
+Travel Report	6a647a231015696b74361bca
+
+Store these in:
+
+.env
+
+Example
+
+LYZR_GOAL_AGENT_ID=
+LYZR_PLANNER_AGENT_ID=
+...
+5. Backend Workflow
+Step 1
+
+Receive
+
+POST /api/workflow
+
+Body
+
+{
+ "message":"Plan a Goa trip for two people under ₹30000"
+}
+Step 2
+
+Invoke Goal Understanding Agent
+
+Output
+
+Structured Trip JSON
+Step 3
+
+Invoke Planner Agent
+
+Output
+
+Workflow Plan
+Step 4
+
+Execute Parallel Tasks
+
+Run simultaneously
+
+Flight API
+
+Hotel API
+
+Weather API
+Step 5
+
+Pass Flight API result
+
+↓
+
+Flight Search Agent
+
+Output
+
+Ranked Flights
+Step 6
+
+Pass Hotel API result
+
+↓
+
+Hotel Search Agent
+
+Output
+
+Ranked Hotels
+Step 7
+
+Pass Weather API result
+
+↓
+
+Weather Intelligence Agent
+
+Output
+
+Weather Analysis
+Step 8
+
+Invoke Budget Agent
+
+Input
+
+Trip
+
+Flight Result
+
+Hotel Result
+
+Weather Result
+
+Estimated Expenses
+
+Output
+
+Budget Analysis
+Step 9
+
+Invoke Decision Agent
+
+Input
+
+Trip
+
+Flight Result
+
+Hotel Result
+
+Weather Result
+
+Budget Result
+
+Output
+
+Selected Flight
+
+Selected Hotel
+
+Final Decision
+Step 10
+
+Invoke Itinerary Agent
+
+Input
+
+Trip
+
+Decision Result
+
+Budget Result
+
+Weather Result
+
+Output
+
+5-Day Itinerary
+Step 11
+
+Invoke Travel Report Agent
+
+Input
+
+Trip
+
+Flight Result
+
+Hotel Result
+
+Weather Result
+
+Budget Result
+
+Decision Result
+
+Itinerary Result
+
+Output
+
+Final Travel Report
+6. Important Data Mapping
+
+Normalize agent outputs before passing downstream.
+
+Flight Agent
+
+Merge
+
+best_option
+
+with
+
+top_recommendations
+
+using
+
+flight_id
+Hotel Agent
+
+Merge
+
+best_option
+
+with
+
+top_recommendations
+
+using
+
+hotel_id
+Budget Agent
+
+Extract
+
+cost_breakdown.total_estimated_cost
+
+↓
+
+budget_result.total_estimated_cost
+
+Do NOT modify
+
+reasoning
+confidence
+warnings
+action_log
+
+Only normalize structure.
+
+7. Database
+
+Recommended Tables
+
+workflow
+
+Stores
+
+workflow_id
+
+user_id
+
+status
+
+created_at
+workflow_tasks
+
+Stores
+
+task_name
+
+status
+
+started_at
+
+ended_at
+
+response_json
+workflow_results
+
+Stores
+
+Complete Final Report
+
+8. Backend APIs
+POST
+/api/workflow
+
+Creates workflow.
+
+Returns
+
+workflow_id
+GET
+/api/workflow/:id
+
+Returns
+
+Running
+
+Completed
+
+Failed
+GET
+/api/workflow/:id/result
+
+Returns
+
+All agent outputs
+
++
+
+Final Report
+9. Error Handling
+
+If
+
+Flight API fails
+
+↓
+
+Continue
+
+Return
+
+Partial Result
+
+If
+
+Hotel API fails
+
+↓
+
+Continue
+
+If
+
+Weather unavailable
+
+↓
+
+Weather Agent
+
+returns
+
+needs_weather_data
+
+If
+
+Decision Agent fails
+
+↓
+
+Return
+
+Budget
+
+Flight
+
+Hotel
+
+Results
+
+If
+
+Travel Report fails
+
+↓
+
+Return
+
+Decision
+
+Itinerary
+
+10. Logging
+
+Log
+
+Every API call
+Every Lyzr call
+Every retry
+Workflow duration
+Agent execution time
+11. Expected Response
+Goal
+
+Planner
+
+Flight
+
+Hotel
+
+Weather
+
+Budget
+
+Decision
+
+Itinerary
+
+Travel Report
+
+All should be stored and returned.
+
+FRONTEND HANDOFF DOCUMENT
+TravelGenie AI – Frontend Integration Guide
+1. Frontend Responsibility
+
+Frontend should ONLY communicate with backend.
+
+Never call
+
+Lyzr
+Flight API
+Hotel API
+Weather API
+2. Pages
+Home
+
+Large text box
+
+Example
+
+Plan a Goa trip for two people under ₹30000.
+
+Button
+
+Plan My Trip
+Workflow Page
+
+Show
+
+Understanding Request
+
+↓
+
+Planning
+
+↓
+
+Searching Flights
+
+↓
+
+Searching Hotels
+
+↓
+
+Checking Weather
+
+↓
+
+Optimizing Budget
+
+↓
+
+Making Decision
+
+↓
+
+Generating Itinerary
+
+↓
+
+Preparing Report
+
+Use progress indicators while polling the backend.
+
+Result Page
+
+Display
+
+Trip Summary
+
+Destination
+
+Dates
+
+Travelers
+
+Preference
+
+Flight Card
+
+Airline
+
+Price
+
+Reason
+
+Hotel Card
+
+Hotel Name
+
+Price
+
+Rating
+
+Amenities
+
+Weather Card
+
+Condition
+
+Risk
+
+Packing Advice
+
+Warnings
+
+Budget Card
+
+Budget
+
+Estimated Cost
+
+Difference
+
+Optimization Suggestions
+
+Decision Card
+
+Selected Flight
+
+Selected Hotel
+
+Decision Summary
+
+Itinerary Timeline
+
+Day 1
+
+Day 2
+
+Day 3
+
+Day 4
+
+Day 5
+
+Recommendations
+
+Display
+
+important_recommendations
+Warnings
+
+Display
+
+warnings
+Confidence
+
+Display
+
+85%
+3. Backend APIs
+Create Workflow
+POST /api/workflow
+
+Request
+
+{
+ "message":"Plan a Goa trip..."
+}
+
+Response
+
+{
+ "workflow_id":"abc123"
+}
+Poll Status
+GET /api/workflow/{workflow_id}
+
+Response
+
+{
+ "status":"running"
+}
+
+or
+
+{
+ "status":"completed"
+}
+Get Result
+GET /api/workflow/{workflow_id}/result
+
+Response
+
+Contains:
+
+Trip Summary
+Flight Result
+Hotel Result
+Weather Result
+Budget Result
+Decision Result
+Itinerary Result
+Final Report
+4. UI Components
+
+Recommended reusable components:
+
+Chat Input
+Workflow Progress Stepper
+Flight Card
+Hotel Card
+Weather Card
+Budget Summary Card
+Decision Summary Card
+Itinerary Timeline
+Recommendations List
+Warning Banner
+Loading Spinner
+Error Banner
+5. Polling Strategy
+Submit request via POST /api/workflow.
+Receive workflow_id.
+Poll GET /api/workflow/{workflow_id} every 2–3 seconds.
+When status is completed, call GET /api/workflow/{workflow_id}/result.
+Render the complete report.
+6. Error Handling
+If the backend returns partial_success, show available results with a warning banner.
+If workflow status is failed, display a retry option.
+Handle network errors with retry messaging rather than clearing the user's request.
+7. Final UI Flow
+Home
+   │
+   ▼
+Submit Trip Request
+   │
+   ▼
+Workflow Progress
+   │
+   ▼
+Results Dashboard
+   │
+   ├── Trip Summary
+   ├── Flight
+   ├── Hotel
+   ├── Weather
+   ├── Budget
+   ├── Decision
+   ├── Itinerary
+   ├── Recommendations
+   └── Warnings
