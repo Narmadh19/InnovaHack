@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import WorkflowProgress from "../components/WorkflowProgress";
 import ActionLog from "../components/ActionLog";
 import ResultsGrid from "../components/ResultsGrid";
-
+import ItineraryCard from "../components/ItineraryCard";
 function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-950">
@@ -24,6 +24,18 @@ function Dashboard() {
         </div>
 
         <ResultsGrid />
+        <ItineraryCard />
+        <div className="flex gap-4 mt-8">
+
+  <button className="bg-cyan-500 px-6 py-3 rounded-xl text-white hover:bg-cyan-600">
+    Download PDF
+  </button>
+
+  <button className="bg-slate-800 border border-slate-700 px-6 py-3 rounded-xl text-white hover:border-cyan-400">
+    Share Report
+  </button>
+
+</div>
 
       </div>
     </div>
