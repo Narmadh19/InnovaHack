@@ -1,2 +1,11 @@
-Agent	Status	Input	Output	Owner
-Goal Understanding Agent	✅ Completed	Natural language	Travel JSON	Swetha
+{
+ "goal_agent":"6a645202dca11e54549bafd1",
+ "planner_agent":"6a645202dca11e54549bafd1",
+ "flight_agent":"6a645502c42eb0d1c8a626f0",
+ "hotel_agent":"6a64593246bab0311981145e",
+ "weather_agent":"6a645fd95b267f5d4d3b3ae5",
+ "budget_agent":"6a6462a45b267f5d4d3b3af8",
+ "decision_agent":"6a6476840632b95a6d35a001",
+ "itinerary_agent":"6a647844ea8fb353b64f5cd1",
+ "travel_report_agent":"6a647a231015696b74361bca"
+}
