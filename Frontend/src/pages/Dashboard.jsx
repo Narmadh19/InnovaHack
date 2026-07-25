@@ -12,12 +12,15 @@ import {
   UserCheck, 
   FileCheck,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  AlertTriangle,
+  CalendarDays,
+  Bell
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
-  const { stages, progress, isGenerating, sessionId } = useTravel();
+  const { stages, progress, isGenerating, isPartial, sessionId } = useTravel();
 
   const getStageIcon = (id) => {
     switch (id) {
@@ -28,12 +31,14 @@ const Dashboard = () => {
       case 'weather': return <CloudSun className="w-5 h-5 text-amber-400" />;
       case 'budget': return <Coins className="w-5 h-5 text-teal-400" />;
       case 'decision': return <UserCheck className="w-5 h-5 text-indigo-400" />;
+      case 'itinerary': return <CalendarDays className="w-5 h-5 text-orange-400" />;
+      case 'booking': return <UserCheck className="w-5 h-5 text-cyan-400" />;
       case 'report': return <FileCheck className="w-5 h-5 text-pink-400" />;
       default: return <Compass className="w-5 h-5 text-cyan-400" />;
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStageStatusBadge = (status) => {
     switch (status) {
       case 'completed':
         return <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Completed</span>;
@@ -63,6 +68,16 @@ const Dashboard = () => {
           </Link>
         )}
       </div>
+
+      {isPartial && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block mb-0.5">⚠️ Partial Plan Generated</span>
+            <span>Some agent workflows (e.g. specific weather risk indices) timed out. Displaying all successfully loaded flight, hotel, weather, and budget optimization options.</span>
+          </div>
+        </div>
+      )}
 
       {!sessionId ? (
         <div className="glass-card border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
@@ -102,7 +117,7 @@ const Dashboard = () => {
                     </div>
                     <span className="text-xs font-bold text-slate-200">{stage.name}</span>
                   </div>
-                  {getStatusBadge(stage.status)}
+                  {getStageStatusBadge(stage.status)}
                 </div>
 
                 {/* Description */}
@@ -126,6 +141,46 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
+
+          {/* Booking & Notification Swarm Status Panel */}
+          {progress === 100 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+              {/* Booking confirmation Card */}
+              <div className="glass-card border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest block mb-4">Booking Agent Core</span>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-200">Simulated Booking Swarm</h4>
+                    <span className="text-[10px] text-slate-500 font-mono">Reference: #BKG-GOA-2026</span>
+                  </div>
+                  <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">CONFIRMED</span>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Hotel Gracery/Sea Breeze resort booking reservations locked in. Flight tickets successfully sourced and held.
+                </p>
+              </div>
+
+              {/* Notification history Card */}
+              <div className="glass-card border border-white/10 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest block mb-3 flex items-center gap-1.5">
+                    <Bell className="w-3.5 h-3.5" />
+                    Notification History Feed
+                  </span>
+                  <div className="flex flex-col gap-2 max-h-32 overflow-y-auto font-mono text-[10px]">
+                    <div className="flex items-start gap-2.5 border-b border-white/[0.02] pb-1.5">
+                      <span className="text-slate-500 shrink-0">10:30:24</span>
+                      <span className="text-slate-300">📧 Flight ticket receipt pushed to traveler email (indigo@fly.com).</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-slate-500 shrink-0">10:30:26</span>
+                      <span className="text-slate-300">💬 SMS push with weather alert details successfully sent to traveler.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Logs Terminal */}
           <ActionLog />
