@@ -5,6 +5,7 @@ import ResultsGrid from "../components/ResultsGrid";
 import ItineraryCard from "../components/ItineraryCard";
 import { useParams } from "react-router-dom";
 import AgentStatus from "../components/AgentStatus";
+import BudgetChart from "../components/BudgetChart";
 function Dashboard() {
 
 const { workflowId } = useParams();
@@ -28,6 +29,7 @@ const { workflowId } = useParams();
         </div>
 
         <ResultsGrid />
+        <BudgetChart />
         <AgentStatus />
         <ItineraryCard />
         <div className="flex gap-4 mt-8">

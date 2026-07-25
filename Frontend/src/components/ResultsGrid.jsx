@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 const cards = [
   {
     title: "Flights",
@@ -43,26 +44,34 @@ const cards = [
 
 function ResultsGrid() {
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+    <motion.div
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.97 }} className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
       {cards.map((card) => (
-        <div
+        <motion.div
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.97 }}
           key={card.title}
           className="bg-slate-900 border border-slate-700 rounded-2xl p-6 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/20 transition-all"
         >
-          <div className="text-5xl">{card.icon}</div>
+          <motion.div
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.97 }} className="text-5xl">{card.icon}</motion.div>
 
           <h2 className="text-white text-xl font-bold mt-4">
             {card.title}
           </h2>
 
-          <div className="mt-4 space-y-2 text-gray-300">
+          <motion.div
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.97 }} className="mt-4 space-y-2 text-gray-300">
             {card.content.map((item, index) => (
               <p key={index}>{item}</p>
             ))}
-          </div>
-        </div>
+          </motion.div>
+       </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
