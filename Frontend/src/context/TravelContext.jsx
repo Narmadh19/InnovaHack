@@ -12,6 +12,7 @@ export const TravelProvider = ({ children }) => {
   const [progress, setProgress] = useState(0);
   const [stages, setStages] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [isPartial, setIsPartial] = useState(false);
   
   // Scraped Travel Data
   const [flights, setFlights] = useState([]);
@@ -52,7 +53,7 @@ export const TravelProvider = ({ children }) => {
 
     pollingInterval.current = setInterval(async () => {
       try {
-         const res = await api.get(`/api/workflow/${sid}`);
+        const res = await api.get(`/api/workflow/${sid}`);
         const { progress: currentProgress, status, completed_agents, current_agent, actionLog } = res.data;
         
         setProgress(currentProgress);
@@ -66,6 +67,8 @@ export const TravelProvider = ({ children }) => {
           { id: 'weather', name: 'Weather Intelligence Agent', description: 'Analyzing weather conditions for packing tips.' },
           { id: 'budget', name: 'Budget Optimization Agent', description: 'Allocating expenses and maximizing savings.' },
           { id: 'decision', name: 'Decision Agent', description: 'Aligning itinerary with traveler preferences.' },
+          { id: 'itinerary', name: 'itinerary_generation', description: 'Generating custom daily travel itineraries.' },
+          { id: 'booking', name: 'Booking Agent', description: 'Simulated reservation booking confirmation.' },
           { id: 'report', name: 'Report Generator Agent', description: 'Compiling final travel packet and PDF exports.' }
         ];
 
@@ -73,10 +76,15 @@ export const TravelProvider = ({ children }) => {
           let stageStatus = 'pending';
           let stageProgress = 0;
           
-          if (completed_agents && completed_agents.includes(agent.name)) {
+          const isCompleted = completed_agents && (
+            completed_agents.includes(agent.name) || 
+            (agent.id === 'itinerary' && (completed_agents.includes('Itinerary Agent') || completed_agents.includes('itinerary_generation')))
+          );
+
+          if (isCompleted) {
             stageStatus = 'completed';
             stageProgress = 100;
-          } else if (current_agent && current_agent === agent.name) {
+          } else if (current_agent && (current_agent === agent.name || (agent.id === 'itinerary' && current_agent === 'itinerary_generation'))) {
             stageStatus = 'running';
             stageProgress = 50;
           }
@@ -86,10 +94,15 @@ export const TravelProvider = ({ children }) => {
         
         setStages(mappedStages);
 
-        if (status === 'completed' || currentProgress >= 100) {
+        if (status === 'completed' || status === 'partial' || currentProgress >= 100) {
           clearInterval(pollingInterval.current);
           setIsGenerating(false);
-          toast.success('AI travel plan generated successfully!');
+          setIsPartial(status === 'partial');
+          if (status === 'partial') {
+            toast.error('Swarm completed with partial results (some agents timed out).', { duration: 5000 });
+          } else {
+            toast.success('AI travel plan generated successfully!');
+          }
           fetchTravelPlanData(sid);
         }
       } catch (err) {
@@ -158,6 +171,7 @@ export const TravelProvider = ({ children }) => {
     if (pollingInterval.current) clearInterval(pollingInterval.current);
     setSessionId(null);
     setIsGenerating(false);
+    setIsPartial(false);
     setProgress(0);
     setStages([]);
     setLogs([]);
@@ -181,6 +195,7 @@ export const TravelProvider = ({ children }) => {
     <TravelContext.Provider value={{
       sessionId,
       isGenerating,
+      isPartial,
       progress,
       stages,
       logs,
